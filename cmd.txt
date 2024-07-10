@@ -1,0 +1,36 @@
+python train.py --pretrained_checkpoint logs/train_sim_full_wo3dpw_h36mp1_shift_w_rescale_hr48/checkpoints/previous_16_6000_42.4_30.5.pt --encoder hr48 --name train_sim_full_ft_rerun --rescale_bbx --shift_center --train_dataset 3dpw --eval_dataset 3dpw --bbox_type rect --batch_size 20 --use_extraviews --n_views 5 --lr 1e-5
+
+CUDA_VISIBLE_DEVICES=1 python make_novelview.py --bbox_type rect --dataset h36m-p2 --viz --save_obj
+
+CUDA_VISIBLE_DEVICES=1 python demo.py --img_dir ../SPIN/img_for_cmp/3dpw/full_imgs/ --find_raw --dataset 3dpw
+
+python ./src/tools/end2end_inference_bodymesh.py --reusme_checkpoint ./models/fastmetro_checkpoint/FastMETRO-L-H64_3dpw_state_dict.bin --image_file_or_path ../SPIN/img_for_cmp/coco/crop_imgs_256/ --no_viz --dataset coco
+
+ps -ef|grep -v grep |grep 'train.py' |awk '{print $2}'|xargs kill -9
+
+CUDA_VISIBLE_DEVICES=0 python eval.py --model_name hmr_hrnet --encoder hr48 --bbox_type rect --checkpoint /media/lab345/Elements\ SE/lcz/logs/train_cliff_full_wo3dpw_h36mp2_hr48_ft/checkpoints/previous_5_3000_67.8_42.8.pt --dataset coco --result_file cliff_result_coco.npz
+
+CUDA_VISIBLE_DEVICES=0 python eval.py --model_name hmr_hrnet --encoder hr48 --bbox_type rect --checkpoint /media/lab345/Elements\ SE/lcz/logs/train_cliff_full_wo3dpw_h36mp2_hr48_ft/checkpoints/previous_5_3000_67.8_42.8.pt --dataset coco --result_file cliff_result_coco.npz
+
+CUDA_VISIBLE_DEVICES=1 python test.py --model_name hmr_sim_hrnet --checkpoint /media/lab345/Elements\ SE/lcz/logs/train_sim_full_wo3dpw_h36mp1_shift_w_rescale_hr48_ft/checkpoints/previous_6_12000_64.9_40.8.pt --use_fuse --use_extraviews --rescale_bbx --shift_center  --encoder hr48 --bbox_type rect --dataset coco --viz --folder ours-hr48 --use_r3d --out_num 4
+
+
+python demo_agora.py --bbox_type rect --checkpoint /media/lab345/Elements\ SE/lcz/logs_tmp/train_cliff_agora_ft/checkpoints/hr48-PA53.7_MJE91.4_MVE110.0_agora_val_fitted.pt --resize
+
+python demo_agora.py --bbox_type rect --checkpoint logs/train_sim_agora_smil_ft/checkpoints/previous_13_500_74.2_47.9.pt --resize --use_extraviews --n_views 5 --shift_center --rescale_bbx --rend
+
+python train.py --encoder hr48 --name train_sim_agora_ft --bbox_type rect --lr 1e-5 --train_dataset agora --eval_dataset agora --test_steps 500 --save_epochs 1 --checkpoint /media/lab345/Elements\ SE/lcz/logs_tmp/train_sim_agora_ft/checkpoints/previous_16_1500_105.8_61.5.pt --batch_size 20 --summary_step 1000 --sum --use_extraviews --rescale_bbx --shift_center
+
+python train.py --encoder hr48 --name train_cliff_agora_scratch --bbox_type rect --lr 1e-5 --train_dataset agora --eval_dataset agora --test_steps 500 --save_epochs 1 --checkpoint logs/train_cliff_agora_scratch/checkpoints/previous_45_3000_93.2_57.2.pt --batch_size 20 --summary_step 1000 --viz_debug --debug_dataset agora
+
+CUDA_VISIBLE_DEVICES=0 python eval.py --model_name hmr_hrnet_cliff --encoder hr48 --bbox_type square --checkpoint /media/lab345/Elements\ SE/lcz/logs_tmp/train_cliff_agora_ft/checkpoints/hr48-PA53.7_MJE91.4_MVE110.0_agora_val_fitted.pt --dataset agora --viz
+
+python train.py --encoder hr48 --name train_cliff_agora_vit --bbox_type rect --lr 1e-4 --train_dataset agora --eval_dataset agora --test_steps 500 --save_epochs 1 --batch_size 96 --summary_step 1000 --sum
+
+CUDA_VISIBLE_DEVICES=1 python train.py --encoder hr48 --name train_sim_agora_nokid --bbox_type rect --lr 5e-5 --train_dataset agora --eval_dataset agora --test_steps 500 --save_epochs 1 --batch_size 20 --summary_step 1000 --sum --use_extraviews --rescale_bbx --shift_center
+
+python demo_agora.py --bbox_type rect --checkpoint logs/train_cliff_smil_ft/checkpoints/previous_30_2500_74.4_48.8.pt --resize --rend
+
+CUDA_VISIBLE_DEVICES=1 python demo_agora.py --bbox_type square --checkpoint logs/pretrained_hrnet/hr48-PA53.7_MJE91.4_MVE110.0_agora_val_fitted.pt --resize --rend
+
+python eval.py --model_name hmr_hrnet --encoder hr48 --bbox_type rect --checkpoint logs/train_cliff_smil_ft/checkpoints/previous_30_2500_74.4_48.8.pt --dataset agora --viz
