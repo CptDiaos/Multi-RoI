@@ -42,4 +42,12 @@ ${ROOT}
    python train.py --pretrained_checkpoint logs/train_sim_full_wo3dpw_h36mp1_shift_w_rescale_hr48/checkpoints/previous_16_6000_42.4_30.5.pt --encoder hr48 --name train_sim_full_ft_rerun --rescale_bbx --shift_center --train_dataset 3dpw --eval_dataset 3dpw --bbox_type rect --batch_size 20 --use_extraviews --n_views 5 --lr 1e-5
    ```
 ### Evaluation
-Coming soon!
+For evaluating the model with HRNet-w48 backbone on Human 3.6M (following protocol #1 or #2), you can use this command as example:
+```
+   python eval.py --model_name hmr_sim_hrnet --encoder hr48 --bbox_type rect --checkpoint logs/train_sim_full_wo3dpw_h36mp1_shift_w_rescale_hr48/checkpoints/previous_16_6000_42.4_30.5.pt --dataset h36m-p1/h36m-p2
+ ```
+Alternatively, you may evaluate the model with ResNet-50 backbone on 3DPW through this command as example:
+```
+   python eval.py --model_name hmr_sim --bbox_type rect --checkpoint logs/train_sim_full_wo3dpw_h36mp1_shift_w_rescale_ft/checkpoints/previous_2_3000_68.3_43.2.pt --dataset 3dpw
+ ```
+Moreover, you can add --viz to visualize projected joints and meshes on images.
